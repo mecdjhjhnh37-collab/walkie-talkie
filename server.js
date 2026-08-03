@@ -1,22 +1,22 @@
-const express = require('express');
-const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require('socket.io');
-const io = new Server(server);
-const path = require('path');
-
-app.use(express.static(path.join(__dirname, 'عام')));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'عام', 'index.html'));
-});
-
-io.on('connection', (socket) => {
-    socket.on('incoming-call', (data) => {
-        socket.broadcast.emit('incoming-call', data);
+    socket.on('call-user', (data) => {
+        if (data.roomId === 'general') return;
+        // إرسال الإشارة لكل الموجودين في الغرفة ما عدا الشخص المتصل نفسه
+        socket.to(data.roomId).emit('incoming-call', {
+            signal: data.signal,
+            from: data.from,
+            type: data.type,
+            roomId: data.roomId
+        });
     });
-});
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT);
+    socket.on('accept-call', (data) => {
+        socket.to(data.roomId).emit('call-accepted', data.signal);
+    });
+
+    socket.on('ice-candidate', (data) => {
+        socket.to(data.roomId).emit('ice-candidate', data.candidate);
+    });
+
+    socket.on('end-call', (data) => {
+        socket.to(data.roomId).emit('call-ended');
+    });
