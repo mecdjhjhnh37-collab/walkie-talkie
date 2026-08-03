@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walkie Talkie - Mecd Developer</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
+        .container {
+            max-width: 440px;
+            margin: 10px auto;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+        #login-screen { display: block; }
+        .dev-badge {
+            background: linear-gradient(45deg, #ff9800, #e91e63);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.6;
+        }
+        .google-btn-container { display: flex; justify-content: center; margin-top: 20px; }
+        #chats-screen { display: none; }
+        .user-header {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .create-btn {
+            width: 100%;
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .chat-list { list-style: none; padding: 0; margin: 0; }
+        .chat-item {
+            background: #2c2c2e;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .chat-title { font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 5px; }
+        .room-actions { display: flex; gap: 8px; align-items: center; }
+        .del-room-btn {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        #talk-screen { display: none; }
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2a2a2a;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .call-actions button {
+            background: #333;
+            border: none;
+            font-size: 16px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+        .back-btn {
+            background: #d32f2f;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .chat-box {
+            height: 240px;
+            background: #141414;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            text-align: right;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid #2a2a2a;
+        }
+        .message-item {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            word-break: break-word;
+            max-width: 85%;
+        }
+        .message-sender {
+            font-weight: bold;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .delete-btn {
+            font-size: 10px;
+            color: #ff5252;
+            cursor: pointer;
+        }
+        .media-preview {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .input-bar {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .input-bar input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #2a2a2a;
+            color: #fff;
+            outline: none;
+            font-size: 13px;
+        }
+        .media-btn-label {
+            background: #333;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .send-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #call-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-radius: 16px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 10px;
+        }
+        video {
+            width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            background: #000;
+            margin-bottom: 5px;
+        }
+        .call-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- شاشة تسجيل الدخول -->
+        <div id="login-screen">
+            <div class="dev-badge">
+                👋 أهلاً بك في موقع المطور مجد <br>
+                <span style="font-size: 12px; opacity: 0.95;">Geliştirici Mecd'in Sitesine Hoş Geldiniz</span>
+            </div>
+            <h3>📻 Walkie Talkie</h3>
+            <p style="color: #aaa; font-size: 14px;">سجل دخولك للانضمام والتحدث:</p>
+            <div class="google-btn-container">
+                <div id="g_id_onload"
+                     data-client_id="456439585406-9db1t4v6ivjkipdhmgoun7p7q3tfllku.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
+            </div>
+        </div>
+
+        <!-- شاشة الغرف -->
+        <div id="chats-screen">
+            <div id="user-info" class="user-header"></div>
+            <button class="create-btn" onclick="createNewRoom()">➕ إنشاء غرفة محادثة جديدة</button>
+            <h4 style="text-align: right; margin-bottom: 10px; color: #888;">الغرف المتاحة 💬</h4>
+            <div class="chat-list" id="roomsContainer"></div>
+        </div>
+
+        <!-- شاشة الغرفة / الدردشة -->
+        <div id="talk-screen">
+            <div class="room-header">
+                <span id="current-room-title" style="font-weight:bold;">الغرفة</span>
+                <div class="call-actions" id="callActionsContainer">
+                    <button onclick="startCall('audio')" title="مكالمة صوتية">📞</button>
+                    <button onclick="startCall('video')" title="مكالمة فيديو">📹</button>
+                    <button class="back-btn" onclick="backToChats()">خروج</button>
+                </div>
+            </div>
+
+            <div class="chat-box" id="chatBox"></div>
+
+            <div class="input-bar">
+                <label class="media-btn-label" id="mediaBtnContainer" title="إرسال صورة أو فيديو">
+                    📷
+                    <input type="file" id="mediaInput" accept="image/*,video/*" style="display:none;" onchange="sendMedia(this)">
+                </label>
+                <input type="text" id="messageInput" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter') sendMessage()">
+                <button onclick="sendMessage()" class="send-btn">إرسال</button>
+            </div>
+        </div>
+
+        <!-- شاشة المكالمات الوافدة / القائمة -->
+        <div id="call-overlay">
+            <h4 id="call-status" style="color: #4caf50; margin-bottom: 5px;">جاري الاتصال...</h4>
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay playsinline muted style="width: 35%; max-height: 70px;"></video>
+            
+            <div class="call-btn-group" id="incomingActionBtns" style="display: none;">
+                <button onclick="acceptIncomingCall()" style="background:#4caf50; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">انضمام / قبول ✅</button>
+                <button onclick="endCall()" style="background:#e53935; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">رفض ❌</button>
+            </div>
+            <button id="endCallOnlyBtn" onclick="endCall()" style="background:#e53935; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; margin-top:8px; cursor:pointer;">إنهاء المكالمة 📵</button>
+        </div>
+    </div>
+
+    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="ringSound" src="https://assets.mixkit.co/active_storage/sfx/1361/1361-preview.mp3" preload="auto" loop></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentUserName = "مستخدم";
+        let currentRoomId = "general";
+        let roomsList = [];
+        let incomingSignalData = null;
+        let callType = 'audio';
+
+        function isAdmin() {
+            return currentUserName.includes("مجد") || currentUserName.toLowerCase().includes("admin") || currentUserName.toLowerCase().includes("mecd");
+        }
+
+        if (window.Notification && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
+        function handleCredentialResponse(response) {
+            const payload = parseJwt(response.credential);
+            currentUserName = payload.name;
+            document.getElementById('login-screen').style.display = "none";
+            document.getElementById('chats-screen').style.display = "block";
+            
+            let adminBadge = isAdmin() ? " 👑 [مدير النظام - Admin]" : "";
+            document.getElementById('user-info').innerText = `المستخدم: ${currentUserName} ${adminBadge} 👤`;
+            renderRooms();
+        }
+
+        socket.on('init-rooms', (rooms) => { roomsList = rooms; renderRooms(); });
+        socket.on('room-created', (newRoom) => { roomsList.push(newRoom); renderRooms(); });
+        socket.on('room-deleted', (roomId) => {
+            roomsList = roomsList.filter(r => r.id !== roomId);
+            renderRooms();
+            if (currentRoomId === roomId) {
+                backToChats();
+                alert("⚠️ تم إغلاق هذه الغرفة بواسطة الإدارة.");
+            }
+        });
+
+        function renderRooms() {
+            const container = document.getElementById('roomsContainer');
+            container.innerHTML = '';
+            roomsList.forEach(room => {
+                const isLocked = room.password !== '';
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                
+                let deleteRoomBtn = (isAdmin() && room.id !== 'general') ? `<button class="del-room-btn" onclick="event.stopPropagation(); deleteRoom('${room.id}')">🗑️ إغلاق الغرفة</button>` : '';
+
+                item.innerHTML = `
+                    <span class="chat-title">${room.name} ${isLocked ? '🔒' : ''}</span>
+                    <div class="room-actions">
+                        ${deleteRoomBtn}
+                        <span>▶</span>
+                    </div>
+                `;
+                item.onclick = () => joinRoom(room);
+                container.appendChild(item);
+            });
+        }
+
+        function createNewRoom() {
+            const name = prompt("أدخل اسم الغرفة الجديدة:");
+            if (!name) return;
+            const pass = prompt("أدخل كلمة سر للغرفة (أو اتركها فارغة):");
+            socket.emit('create-room', { id: 'room_' + Date.now(), name: name, password: pass || '' });
+        }
+
+        function deleteRoom(roomId) {
+            if (confirm("هل أنت متأكد من إغلاق وحذف هذه الغرفة نهائياً؟")) {
+                socket.emit('delete-room', roomId);
+            }
+        }
+
+        function joinRoom(room) {
+            if (room.password !== '' && !isAdmin()) {
+                const pass = prompt(`أدخل كلمة سر غرفة "${room.name}":`);
+                if (pass !== room.password) return alert("❌ كلمة السر غير صحيحة!");
+            }
+
+            currentRoomId = room.id;
+            socket.emit('join-room', currentRoomId);
+            document.getElementById('chats-screen').style.display = "none";
+            document.getElementById('talk-screen').style.display = "block";
+            document.getElementById('current-room-title').innerText = room.name + (isAdmin() && room.password !== '' ? ' (🔑 دخلت بصلاحية الأدمن)' : '');
+            document.getElementById('chatBox').innerHTML = '';
+
+            if (currentRoomId === 'general') {
+                document.getElementById('mediaBtnContainer').style.display = 'none';
+                document.getElementById('callActionsContainer').innerHTML = `<button class="back-btn" onclick="backToChats()">خروج</button>`;
+            } else {
+                document.getElementById('mediaBtnContainer').style.display = 'inline-block';
+                document.getElementById('callActionsContainer').innerHTML = `
+                    <button onclick="startCall('audio')" title="مكالمة صوتية">📞</button>
+                    <button onclick="startCall('video')" title="مكالمة فيديو">📹</button>
+                    <button class="back-btn" onclick="backToChats()">خروج</button>
+                `;
+            }
+        }
+
+        function backToChats() {
+            endCall();
+            document.getElementById('talk-screen').style.display = "none";
+            document.getElementById('chats-screen').style.display = "block";
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+            socket.emit('send-chat-message', { roomId: currentRoomId, sender: currentUserName, text: text });
+            input.value = '';
+        }
+
+        function sendMedia(element) {
+            if (currentRoomId === 'general') return;
+            const file = element.files[0];
+            if (!file) return;
+
+            if (file.size > 30 * 1024 * 1024) {
+                alert("حجم الملف كبير جداً! الرجاء اختيار فيديو أصغر من 30 ميجابايت.");
+                element.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            const isVideo = file.type.startsWith('video/');
+            
+            reader.onload = function(e) {
+                socket.emit('send-chat-message', {
+                    roomId: currentRoomId,
+                    sender: currentUserName,
+                    file: e.target.result,
+                    fileType: isVideo ? 'video' : 'image'
+                });
+                element.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        socket.on('load-old-messages', (messages) => {
+            const box = document.getElementById('chatBox');
+            box.innerHTML = '';
+            messages.forEach(data => appendMessage(data, false));
+        });
+
+        socket.on('receive-chat-message', (data) => {
+            appendMessage(data, true);
+        });
+
+        function appendMessage(data, playSound) {
+            const box = document.getElementById('chatBox');
+            const isMe = data.sender === currentUserName;
+            const msg = document.createElement('div');
+            msg.className = 'message-item';
+            msg.id = data.id;
+            
+            msg.style.alignSelf = isMe ? 'flex-start' : 'flex-end';
+            msg.style.background = isMe ? '#1b4332' : '#2c2c2e';
+            msg.style.color = 'white';
+
+            let deleteHtml = (isMe || isAdmin()) ? `<span class="delete-btn" onclick="deleteMsg('${data.id}')">🗑️ حذف</span>` : '';
+            let mediaHtml = '';
+
+            if (data.file && data.roomId !== 'general') {
+                if (data.fileType === 'image') {
+                    mediaHtml = `<br><img src="${data.file}" class="media-preview" onclick="window.open(this.src)">`;
+                } else if (data.fileType === 'video') {
+                    mediaHtml = `<br><video src="${data.file}" controls class="media-preview"></video>`;
+                }
+            }
+
+            msg.innerHTML = `
+                <div class="message-sender">
+                    <span style="color:${isMe ? '#81c784':'#64b5f6'}">${data.sender}</span>
+                    ${deleteHtml}
+                </div>
+                ${data.text} ${mediaHtml}
+            `;
+            box.appendChild(msg);
+            box.scrollTop = box.scrollHeight;
+
+            if (playSound && !isMe) {
+                document.getElementById('notifSound').play().catch(e => {});
+            }
+        }
+
+        function deleteMsg(msgId) {
+            if (confirm("هل تريد حذف هذه الرسالة؟")) {
+                socket.emit('delete-message', { roomId: currentRoomId, msgId: msgId });
+            }
+        }
+
+        socket.on('message-deleted', (msgId) => {
+            const el = document.getElementById(msgId);
+            if (el) el.remove();
+        });
+
+        let localStream;
+        let peerConnection;
+        const servers = {
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        };
+
+        async function startCall(type) {
+            if (currentRoomId === 'general') return;
+            callType = type;
+            document.getElementById('call-overlay').style.display = 'flex';
+            document.getElementById('incomingActionBtns').style.display = 'none'; // المتصل لا تظهر له أزرار قبول
+            document.getElementById('endCallOnlyBtn').style.display = 'block';
+            document.getElementById('call-status').innerText = "جاري الاتصال والانتظار...";
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: type === 'video'
+                });
+                document.getElementById('localVideo').srcObject = localStream;
+
+                createPeerConnection();
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                socket.emit('call-user', { roomId: currentRoomId, signal: offer, from: currentUserName, type: type });
+            } catch (e) {
+                alert("تعذر الوصول للكاميرا أو المايك!");
+                endCall();
+            }
+        }
+
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(servers);
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+                document.getElementById('call-status').innerText = "متصل الآن 🟢";
+                document.getElementById('ringSound').pause();
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', { roomId: currentRoomId, candidate: event.candidate });
+                }
+            };
+        }
+
+        // استقبال الاتصال عند الطرف الآخر
+        socket.on('incoming-call', async (data) => {
+            if (currentRoomId === data.roomId || currentRoomId !== 'general') {
+                incomingSignalData = data;
+                callType = data.type;
+                document.getElementById('call-overlay').style.display = 'flex';
+                document.getElementById('incomingActionBtns').style.display = 'flex'; // إظهار أزرار انضمام/قبول
+                document.getElementById('endCallOnlyBtn').style.display = 'none';
+                document.getElementById('call-status').innerText = `مكالمة واردة من ${data.from} 📞`;
+                document.getElementById('ringSound').play().catch(e => {});
+            }
+        });
+
+        // عندما يضغط الطرف الثاني "قبول"
+        async function acceptIncomingCall() {
+            document.getElementById('incomingActionBtns').style.display = 'none';
+            document.getElementById('endCallOnlyBtn').style.display = 'block';
+            document.getElementById('ringSound').pause();
+            document.getElementById('call-status').innerText = "جاري الانضمام...";
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: callType === 'video'
+                });
+                document.getElementById('localVideo').srcObject = localStream;
+
+                createPeerConnection();
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingSignalData.signal));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                socket.emit('accept-call', { roomId: currentRoomId, signal: answer });
+                document.getElementById('call-status').innerText = "متصل الآن 🟢";
+            } catch (e) {
+                alert("تعذر الوصول للكاميرا أو المايك عند الرد!");
+                endCall();
+            }
+        }
+
+        socket.on('call-accepted', async (signal) => {
+            if (peerConnection && !peerConnection.currentRemoteDescription) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(signal));
+            }
+            document.getElementById('ringSound').pause();
+            document.getElementById('call-status').innerText = "متصل الآن 🟢";
+        });
+
+        socket.on('ice-candidate', async (candidate) => {
+            try {
+                if (peerConnection) {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        function endCall() {
+            document.getElementById('ringSound').pause();
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (peerConnection) peerConnection.close();
+            peerConnection = null;
+            document.getElementById('call-overlay').style.display = 'none';
+            socket.emit('end-call', { roomId: currentRoomId });
+        }
+
+        socket.on('call-ended', () => {
+            document.getElementById('ringSound').pause();
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (peerConnection) peerConnection.close();
+            peerConnection = null;
+            document.getElementById('call-overlay').style.display = 'none';
+        });
+
+        function parseJwt(token) {
+            var base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+        }
+    </script>
+</body>
+</html>
