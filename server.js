@@ -9,7 +9,7 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, 'عام')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'عام', 'index.html'));
 });
 
 io.on('connection', (socket) => {
