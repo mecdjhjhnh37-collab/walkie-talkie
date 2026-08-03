@@ -4,13 +4,18 @@ const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server);
+const fs = require('fs');
 const path = require('path');
 
-// ربط المجلد اللي جواته ملفاتك (عام) مع السيرفر مباشرة
 app.use(express.static(path.join(process.cwd(), 'عام')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'عام', 'index.html'));
+    const indexPath = path.join(process.cwd(), 'عام', 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.send('<h1>جاري تجهيز الواجهة، يرجى الانتظار ثواني...</h1>');
+    }
 });
 
 io.on('connection', (socket) => {
