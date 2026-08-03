@@ -1,22 +1,22 @@
-    socket.on('call-user', (data) => {
-        if (data.roomId === 'general') return;
-        // إرسال الإشارة لكل الموجودين في الغرفة ما عدا الشخص المتصل نفسه
-        socket.to(data.roomId).emit('incoming-call', {
-            signal: data.signal,
-            from: data.from,
-            type: data.type,
-            roomId: data.roomId
-        });
-    });
+const express = require('express');
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server);
+const path = require('path');
 
-    socket.on('accept-call', (data) => {
-        socket.to(data.roomId).emit('call-accepted', data.signal);
-    });
+app.use(express.static(path.join(__dirname)));
 
-    socket.on('ice-candidate', (data) => {
-        socket.to(data.roomId).emit('ice-candidate', data.candidate);
-    });
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-    socket.on('end-call', (data) => {
-        socket.to(data.roomId).emit('call-ended');
+io.on('connection', (socket) => {
+    socket.on('incoming-call', (data) => {
+        socket.broadcast.emit('incoming-call', data);
     });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT);
