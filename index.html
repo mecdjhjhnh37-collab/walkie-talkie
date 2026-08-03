@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع المطور مجد - Walkie Talkie</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { background-color: #121212; color: #fff; font-family: Tahoma, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 100%; max-width: 400px; background: #1e1e1e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; }
+        h1, h2 { color: #00bcd4; margin-bottom: 10px; }
+        .sub-title { font-size: 14px; color: #aaa; margin-bottom: 20px; }
+        .btn { background: #00bcd4; color: #000; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .btn:hover { background: #008ba3; color: #fff; }
+        .room-list { margin-top: 20px; text-align: right; max-height: 250px; overflow-y: auto; }
+        .room-item { background: #2c2c2c; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .room-item:hover { background: #383838; }
+        .chat-box { height: 220px; background: #121212; border-radius: 6px; overflow-y: auto; margin-bottom: 10px; padding: 10px; text-align: right; border: 1px solid #333; }
+        .input-area { display: flex; gap: 5px; }
+        .input-area input { flex: 1; padding: 10px; border-radius: 6px; border: none; background: #2c2c2c; color: #fff; }
+        .media-btns { display: flex; gap: 5px; margin-top: 10px; justify-content: center; }
+        .media-btns button { background: #333; color: #fff; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+        .media-btns button:hover { background: #555; }
+        .msg { margin-bottom: 8px; padding: 6px 10px; border-radius: 6px; background: #252525; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 1. شاشة الترحيب وتسجيل الدخول -->
+        <div id="welcome-screen">
+            <h1>مرحباً بك في موقع المطور مجد</h1>
+            <div class="sub-title">Welcome to Developer Mecd's Website</div>
+            <p style="font-size: 13px; color: #888;">يرجى تسجيل الدخول عبر حساب جوجل للمتابعة</p>
+            <button class="btn" onclick="loginWithGoogle()">🌐 تسجيل الدخول بواسطة جوجل</button>
+        </div>
+
+        <!-- 2. شاشة قائمة الغرف المتاحة -->
+        <div id="rooms-screen" style="display: none;">
+            <h2>الغرف المتاحة</h2>
+            <div style="font-size: 13px; color: #00bcd4; margin-bottom: 10px;" id="welcome-user-name"></div>
+            <button class="btn" onclick="createPrivateRoom()" style="background: #ff5722; color:#fff;">➕ إنشاء غرفة خاصة برقم سري</button>
+            
+            <div class="room-list">
+                <div class="room-item" onclick="joinRoom('المحادثة العامة', false)">
+                    <span>🌐 المحادثة العامة (نص فقط)</span>
+                    <span>▶</span>
+                </div>
+                <div id="private-rooms-container"></div>
+            </div>
+        </div>
+
+        <!-- 3. شاشة غرفة الدردشة -->
+        <div id="chat-screen" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 id="current-room-title" style="margin: 0; font-size: 16px;">الغرفة</h3>
+                <button onclick="leaveRoom()" style="background: #d32f2f; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🚪 مغادرة</button>
+            </div>
+
+            <div class="chat-box" id="chatBox">
+                <!-- رسائل المحادثة -->
+            </div>
+
+            <!-- أزرار الوسائط (صوت، فيديو، إرسال صور/فيديو) - تظهر فقط في الغرف الخاصة -->
+            <div id="media-controls" style="display: none;">
+                <div class="media-btns">
+                    <button onclick="startAudioCall()">📞 مكالمة صوتية</button>
+                    <button onclick="startVideoCall()">📹 مكالمة فيديو</button>
+                    <button onclick="sendMediaFile()">📎 إرسال صور/فيديو</button>
+                </div>
+            </div>
+
+            <div class="input-area" style="margin-top: 10px;">
+                <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا...">
+                <button class="btn" style="margin-top:0; width: auto;" onclick="sendMessage()">إرسال</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentRoomName = '';
+        let isPrivate = false;
+        let privateRooms = []; // تخزين الغرف الخاصة مع كلمات السر الخاصة بها
+
+        function loginWithGoogle() {
+            currentUser = "Mecd jhjhnh";
+            alert("تم تسجيل الدخول بنجاح يا " + currentUser);
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('rooms-screen').style.display = 'block';
+            document.getElementById('welcome-user-name').innerText = "مرحباً: " + currentUser;
+        }
+
+        function createPrivateRoom() {
+            let roomName = prompt("أدخل اسم الغرفة الخاصة:");
+            let roomPass = prompt("أدخل كلمة السر للغرفة:");
+            if (roomName && roomPass) {
+                privateRooms.push({ name: roomName, pass: roomPass });
+                renderRooms();
+                alert("تم إنشاء الغرفة الخاصة بنجاح!");
+            }
+        }
+
+        function renderRooms() {
+            let container = document.getElementById('private-rooms-container');
+            container.innerHTML = '';
+            privateRooms.forEach(room => {
+                container.innerHTML += `
+                    <div class="room-item" onclick="checkPassword('${room.name}', '${room.pass}')">
+                        <span>🔒 ${room.name} (غرفة خاصة - صوت وفيديو)</span>
+                        <span>▶</span>
+                    </div>
+                `;
+            });
+        }
+
+        function checkPassword(roomName, correctPass) {
+            let enteredPass = prompt("هذه غرفة خاصة محمية، أدخل كلمة السر:");
+            if (enteredPass === correctPass) {
+                joinRoom(roomName, true);
+            } else if (enteredPass !== null) {
+                alert("كلمة السر غير صحيحة!");
+            }
+        }
+
+        function joinRoom(roomName, privateMode) {
+            currentRoomName = roomName;
+            isPrivate = privateMode;
+            document.getElementById('rooms-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'block';
+            document.getElementById('current-room-title.innerText', '') // syntax safeguard
+            document.getElementById('current-room-title').innerText = roomName;
+            document.getElementById('chatBox').innerHTML = `<div class="msg" style="color: #00bcd4; text-align: center;">انضممت إلى ${roomName}</div>`;
+
+            // إظهار أزرار الصوت والفيديو للمكالمات فقط في الغرف الخاصة
+            if (isPrivate) {
+                document.getElementById('media-controls').style.display = 'block';
+            } else {
+                document.getElementById('media-controls').style.display = 'none';
+            }
+        }
+
+        function leaveRoom() {
+            if (confirm("هل تريد حقاً مغادرة الغرفة؟")) {
+                document.getElementById('chat-screen').style.display = 'none';
+                document.getElementById('rooms-screen').style.display = 'block';
+                document.getElementById('chatBox').innerHTML = '';
+            }
+        }
+
+        function sendMessage() {
+            let input = document.getElementById('messageInput');
+            if (input.value.trim() !== "") {
+                let chatBox = document.getElementById('chatBox');
+                chatBox.innerHTML += `<div class="msg"><b>${currentUser}:</b> ${input.value}</div>`;
+                input.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function startAudioCall() {
+            alert("📞 جاري بدء المكالمة الصوتية داخل الغرفة الخاصة...");
+        }
+
+        function startVideoCall() {
+            alert("📹 جاري تشغيل الكاميرا لبدء مكالمة الفيديو...");
+        }
+
+        function sendMediaFile() {
+            let fileUrl = prompt("أدخل رابط الصورة أو الفيديو الذي تريد إرساله:");
+            if (fileUrl) {
+                let chatBox = document.getElementById('chatBox');
+                chatBox.innerHTML += `<div class="msg"><b>${currentUser} (ملف وسائط):</b><br><a href="${fileUrl}" target="_blank" style="color:#00bcd4;">عرض الملف المرفق</a></div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
