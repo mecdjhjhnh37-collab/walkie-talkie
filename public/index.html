@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walkie Talkie - Mecd Developer</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            max-width: 420px;
+            margin: 10px auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        /* 1️⃣ شاشة الترحيب بالمطور والدخول */
+        #login-screen { display: block; }
+        .dev-badge {
+            background: linear-gradient(45deg, #ff9800, #e91e63);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.6;
+        }
+        .google-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        /* 2️⃣ شاشة قائمة المحادثات */
+        #chats-screen { display: none; }
+        .user-header {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .create-btn {
+            width: 100%;
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .chat-list { list-style: none; padding: 0; margin: 0; }
+        .chat-item {
+            background: #2c2c2e;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .chat-title { font-weight: bold; font-size: 15px; }
+
+        /* 3️⃣ شاشة المحادثة (نفس التصميم الموجود بصورتك 100%) */
+        #talk-screen { display: none; }
+        .back-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            float: right;
+            font-size: 12px;
+        }
+        .talk-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: none;
+            background-color: #e53935;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(229, 57, 53, 0.4);
+            user-select: none;
+            touch-action: manipulation;
+            transition: transform 0.1s, background-color 0.2s;
+            margin-top: 15px;
+        }
+        .talk-btn:active {
+            transform: scale(0.95);
+            background-color: #c62828;
+        }
+        .status { margin-top: 10px; font-size: 13px; color: #4caf50; }
+
+        /* مربع الرسائل النصية نفس الصورة */
+        .chat-box {
+            height: 170px;
+            background: #141414;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            text-align: right;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid #2a2a2a;
+        }
+        .message-item {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            word-break: break-word;
+            max-width: 80%;
+            background: #1b4332;
+            color: white;
+            align-self: flex-start;
+        }
+        .message-sender {
+            font-weight: bold;
+            font-size: 11px;
+            display: block;
+            margin-bottom: 2px;
+            color: #81c784;
+        }
+        .input-container {
+            display: flex;
+            gap: 8px;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #2a2a2a;
+            color: #fff;
+            outline: none;
+            font-size: 14px;
+        }
+        .send-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 1️⃣ شاشة الترحيب والدخول -->
+        <div id="login-screen">
+            <div class="dev-badge">
+                👋 أهلاً بك في موقع المطور مجد <br>
+                <span style="font-size: 12px; opacity: 0.95;">Geliştirici Mecd'in Sitesine Hoş Geldiniz</span>
+            </div>
+            <h3>📻 Walkie Talkie</h3>
+            <p style="color: #aaa; font-size: 14px;">يرجى تسجيل الدخول للانضمام للمحادثات:</p>
+            
+            <div class="google-btn-container">
+                <div id="g_id_onload"
+                     data-client_id="456439585406-9db1t4v6ivjkipdhmgoun7p7q3tfllku.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
+            </div>
+        </div>
+
+        <!-- 2️⃣ شاشة المحادثات -->
+        <div id="chats-screen">
+            <div id="user-info" class="user-header"></div>
+            <button class="create-btn" onclick="createNewRoom()">➕ إنشاء غرفة محادثة جديدة</button>
+            <h4 style="text-align: right; margin-bottom: 10px; color: #888;">الغرف المتاحة 💬</h4>
+            <div class="chat-list" id="roomsContainer"></div>
+        </div>
+
+        <!-- 3️⃣ شاشة المحادثة (مطابقة للشاشة بالصورة) -->
+        <div id="talk-screen">
+            <button class="back-btn" onclick="backToChats()">← رجوع</button>
+            <h3 id="current-room-title" style="margin-top:0;">المحادثات العامة 🌐</h3>
+            
+            <button id="talkBtn" class="talk-btn">اضغط للتحدث 🎙️</button>
+            <div class="status" id="status">الحالة: جاهز للاتصال 🟢</div>
+
+            <div class="chat-box" id="chatBox"></div>
+
+            <div class="input-container">
+                <button onclick="sendMessage()" class="send-btn">إرسال 🚀</button>
+                <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." onkeydown="if(event.key==='Enter') sendMessage()">
+            </div>
+        </div>
+    </div>
+
+    <!-- مكتبة السوكت لتمرير الرسائل لجميع الهواتف -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentUserName = "مستخدم";
+        let currentRoomId = "general";
+        let roomsList = [];
+
+        function handleCredentialResponse(response) {
+            const payload = parseJwt(response.credential);
+            currentUserName = payload.name;
+            document.getElementById('login-screen').style.display = "none";
+            document.getElementById('chats-screen').style.display = "block";
+            document.getElementById('user-info').innerText = `المستخدم: ${currentUserName} 👤`;
+        }
+
+        // استلام الغرف المحفوظة في السيرفر عند دخول أي هاتف
+        socket.on('init-rooms', (rooms) => {
+            roomsList = rooms;
+            renderRooms();
+        });
+
+        socket.on('room-created', (newRoom) => {
+            roomsList.push(newRoom);
+            renderRooms();
+        });
+
+        function renderRooms() {
+            const container = document.getElementById('roomsContainer');
+            container.innerHTML = '';
+            roomsList.forEach(room => {
+                const isLocked = room.password !== '';
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                item.onclick = () => joinRoom(room);
+                item.innerHTML = `<span class="chat-title">${room.name} ${isLocked ? '🔒' : ''}</span> <span>▶</span>`;
+                container.appendChild(item);
+            });
+        }
+
+        function createNewRoom() {
+            const name = prompt("أدخل اسم الغرفة الجديدة:");
+            if (!name) return;
+            const pass = prompt("أدخل كلمة سر للغرفة (أو اتركها فارغة لتكون عامة):");
+            const newRoom = { id: 'room_' + Date.now(), name: name, password: pass || '' };
+            socket.emit('create-room', newRoom);
+        }
+
+        function joinRoom(room) {
+            if (room.password !== '') {
+                const pass = prompt(`أدخل كلمة سر غرفة "${room.name}":`);
+                if (pass !== room.password) return alert("❌ كلمة السر غير صحيحة!");
+            }
+            currentRoomId = room.id;
+            socket.emit('join-room', currentRoomId);
+            document.getElementById('chats-screen').style.display = "none";
+            document.getElementById('talk-screen').style.display = "block";
+            document.getElementById('current-room-title').innerText = room.name;
+            document.getElementById('chatBox').innerHTML = '';
+        }
+
+        function backToChats() {
+            document.getElementById('talk-screen').style.display = "none";
+            document.getElementById('chats-screen').style.display = "block";
+        }
+
+        // إرسال الرسالة النصية إلى السيرفر لتظهر على الهواتف الأُخرى
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            socket.emit('send-chat-message', {
+                roomId: currentRoomId,
+                sender: currentUserName,
+                text: text
+            });
+            input.value = '';
+        }
+
+        // استقبال الرسائل النصية المباشرة من أي هاتف
+        socket.on('receive-chat-message', (data) => {
+            const box = document.getElementById('chatBox');
+            const isMe = data.sender === currentUserName;
+            const msg = document.createElement('div');
+            msg.className = 'message-item';
+            msg.style.alignSelf = isMe ? 'flex-start' : 'flex-end';
+            msg.style.background = isMe ? '#1b4332' : '#2c2c2e';
+            msg.innerHTML = `<span class="message-sender" style="color:${isMe ? '#81c784':'#64b5f6'}">${data.sender}</span>${data.text}`;
+            box.appendChild(msg);
+            box.scrollTop = box.scrollHeight;
+        });
+
+        function parseJwt(token) {
+            var base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+        }
+    </script>
+</body>
+</html>
