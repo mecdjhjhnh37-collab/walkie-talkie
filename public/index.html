@@ -1,0 +1,16 @@
+        // استقبال الاتصال عند الطرف الآخر
+        socket.on('incoming-call', async (data) => {
+            // التحقق أنه في نفس الغرفة ولم يكن هو المتصل بنفسه
+            if (currentRoomId === data.roomId && data.roomId !== 'general') {
+                incomingSignalData = data;
+                callType = data.type;
+                document.getElementById('call-overlay').style.display = 'flex';
+                document.getElementById('incomingActionBtns').style.display = 'flex'; // إظهار أزرار انضمام/قبول
+                document.getElementById('endCallOnlyBtn').style.display = 'none';
+                document.getElementById('call-status').innerText = `مكالمة واردة من ${data.from} 📞`;
+                
+                // تشغيل صوت الرنين
+                const ringEl = document.getElementById('ringSound');
+                if(ringEl) ringEl.play().catch(e => console.log("Audio play blocked", e));
+            }
+        });
