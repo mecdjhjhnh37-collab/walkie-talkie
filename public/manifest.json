@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "walkie-talkie-3.onrender",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "walkie-talkie-3.onrender",
+  "start_url": "/",
+  "theme_color": "#000000",
+  "id": "srv-d9o83hfqj5pc73876a20",
+  "description": "تطبيق محادثة صوتية فورية"
+}
