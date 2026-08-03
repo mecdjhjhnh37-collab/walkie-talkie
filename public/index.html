@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Walkie Talkie - اللاسلكي</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">
+      <div class="status-dot"></div>
+      <h2>جهاز اللاسلكي</h2>
+    </div>
+
+    <!-- شاشة الرسائل -->
+    <div class="chat-box" id="chatBox">
+      <div class="message system">مرحباً بك! اضغط للتحدث أو اكتب رسالتك...</div>
+    </div>
+
+    <!-- أزرار التحكم والإرسال -->
+    <div class="controls">
+      <div class="text-input-group">
+        <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+        <button id="sendBtn" class="btn-send">إرسال</button>
+      </div>
+
+      <div class="ptt-container">
+        <button id="talkBtn" class="ptt-btn">
+          🎙️<br>
+          <span>اضغط للتحدث</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مكتبات الاتصال والبرمجة -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
